@@ -1,7 +1,3 @@
-"""
-01_tree_scalar_branches.py: Simulates particle collision events and stores them
-in a columnar TTree structure.
-"""
 import ROOT
 import array
 import math
@@ -12,7 +8,7 @@ def generate_collision_data(filename: str = "events_scalar.root", n_events: int 
     
     event_id = array.array('i', [0])
     n_particles = array.array('i', [0])
-    pt = array.array('f', [0.0])       # Transverse momentum (GeV)
+    pt = array.array('f', [0.0])       
     eta = array.array('f', [0.0])      # Pseudorapidity
     phi = array.array('f', [0.0])      # Azimuthal angle [-pi, pi]
     
@@ -28,14 +24,14 @@ def generate_collision_data(filename: str = "events_scalar.root", n_events: int 
     for i in range(n_events):
         event_id[0] = i
         n_particles[0] = int(rng.Poisson(4))
-        pt[0] = rng.Exp(25.0)  # TRandom3 üstsel fonksiyonu: Exp()
+        pt[0] = rng.Exp(25.0)  # TRandom3: Exp()
         eta[0] = rng.Gaus(0.0, 1.5)
         phi[0] = rng.Uniform(-math.pi, math.pi)
         tree.Fill()
         
     tree.Write()
     output_file.Close()
-    print(f"Başarıyla kaydedildi -> {filename}")
+    print(f"Successfuly recorded. -> {filename}")
 
 if __name__ == "__main__":
     generate_collision_data()
