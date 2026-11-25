@@ -1,0 +1,61 @@
+# ==============================================================================
+# data_loader.py Algorithm
+# ==============================================================================
+#
+# 1. Start Parallel Processing Engine (EnableImplicitMT)
+#    Activates all physical and virtual CPU cores on the machine.
+#    Goal: Process data blocks across multiple cores at the same time instead
+#    of reading millions of collision events sequentially on a single core.
+#
+# 2. Establish Remote Data Stream Connection (RDataFrame and XRootD)
+#    Connects a virtual pointer to the Events tree (TTree) inside the .root
+#    file on the CERN EOS storage server without downloading the file locally.
+#    Lazy Evaluation: No data is read during this step. The framework only
+#    builds a computational graph of the planned operations.
+#
+# 3. Sequential Kinematic Filtering (Filter Chain)
+#    Every collision event passes through four sequential filters. If an event
+#    fails even a single condition, it is rejected immediately.
+#    * Filter 1: Particle Count (nMuon == 2)
+#      Requires exactly two muons in the event. Events with zero, one, or more
+#      than two muons are removed. Safety purpose: Prevents memory crashes when
+#      accessing array indices [0] and [1] in the following steps.
+#    * Filter 2: Charge Conservation (Muon_charge[0] != Muon_charge[1])
+#      Because the parent Z boson is electrically neutral, the two muons must
+#      carry opposite electric charges (one positive and one negative).
+#    * Filter 3: High Transverse Momentum (Muon_pt[0] > 25 && Muon_pt[1] > 25)
+#      Muons produced from the decay of a heavy Z boson (around 91.2 GeV) carry
+#      high transverse momentum. This cut removes low energy background noise.
+#    * Filter 4: Detector Acceptance Region (abs(Muon_eta[0]) < 2.4 && abs(Muon_eta[1]) < 2.4)
+#      Removes inaccurate measurements outside the central angular region where
+#      the CMS muon chambers provide optimal tracking resolution.
+#
+# 4. Derive New Physical Variable (Define)
+#    Takes the transverse momentum (pT), pseudorapidity (eta), and azimuthal
+#    angle (phi) of both surviving muons to calculate the relativistic invariant
+#    mass as a single scalar value:
+#    M_mumu = sqrt(2 * pT1 * pT2 * (cosh(eta1 - eta2) - cos(phi1 - phi2)))
+#    The Cling C++ compiler translates this string into machine code and
+#    computes it directly in memory.
+#
+# 5. Statistical Grouping and Histogramming (Histo1D)
+#    Divides the calculated M_mumu values into 100 equal bins between 60.0 GeV
+#    and 120.0 GeV (each bin has a width of 0.6 GeV). Every event increments
+#    the counter of the bin corresponding to its mass value by one.
+#
+# 6. Trigger the Event Loop (GetValue)
+#    Executes all operations planned in steps 2, 3, 4, and 5 in a single pass.
+#    Over 60 million raw events are scanned and 4.63 million selected events
+#    are filled into the histogram.
+#
+# 7. Detach Memory Ownership (SetDirectory(0))
+#    Disconnects the generated TH1D histogram from temporary ROOT memory and
+#    returns it as an independent Python object. This prevents data deletion
+#    when the function exits and passes the histogram safely to fit_analysis.py.
+#
+# ==============================================================================
+# Summary Workflow:
+# Raw Data (EOS) > [nMuon == 2] > Pairs > [q1 != q2] > Opposite Charge
+# > [pT > 25, |eta| < 2.4] > Clean Events > [4 Vector] > M_mumu
+# > [100 Bins] > TH1D
+# ==============================================================================

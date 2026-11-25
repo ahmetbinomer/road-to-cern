@@ -1,0 +1,54 @@
+# ==============================================================================
+# fit_analysis.py Algorithm
+# ==============================================================================
+#
+# 1. Configure Environment and Import Upstream Datasets
+#    Ensures the output directory exists and disables the default ROOT
+#    statistics box. Calls load_and_filter_data() to retrieve the 4.64 million
+#    real CMS dimuon events and generate_mc_background() to obtain the
+#    sideband normalized synthetic background histogram.
+#
+# 2. Construct the Joint Signal and Background Model (TF1)
+#    Defines a composite probability density model over [60.0, 120.0] GeV by
+#    combining a Relativistic Breit Wigner resonance function (parameters 0, 1, 2)
+#    with an exponential background curve (parameters 3, 4).
+#    Parameter Constraints: Sets physically motivated initial guesses and
+#    boundaries for the Z boson mass (88.0 to 94.0 GeV) and decay width
+#    (1.0 to 10.0 GeV) to guide the Minuit2 optimizer toward the true global
+#    minimum.
+#
+# 3. Execute Chi Square Minimization Fit (Fit)
+#    Fits the composite TF1 model to the real CMS invariant mass histogram
+#    across [60.0, 120.0] GeV using options "R" (function range) and "S"
+#    (save full fit result object).
+#
+# 4. Extract Physics Observables and Goodness of Fit Metrics
+#    Reads the fitted Z boson mass (M_Z), decay width (Gamma_Z), and their
+#    statistical uncertainties directly from the converged fit parameters.
+#    Computes the reduced chi square (Chi2 / ndf) to evaluate statistical
+#    agreement between the theoretical model and experimental data.
+#
+# 5. Calculate Bin by Bin Pull Residuals
+#    Iterates through all 100 visible histogram bins (from index 1 to 100).
+#    For each bin, evaluates the fitted function at the bin center and computes
+#    the normalized residual: Pull = (Data Count minus Fit Value) / Data Error.
+#    Fills a dedicated pull histogram with unit error bars to diagnose any
+#    systematic deviations across the mass spectrum.
+#
+# 6. Render Publication Style Dual Pad Canvas (TCanvas and TPad)
+#    Splits a high resolution canvas into two vertically stacked pads:
+#    * Top Pad (70 percent height): Overlays real CMS data points, the shaded
+#      Monte Carlo background template, the red composite fit curve, a clean
+#      legend, and a custom TPaveText box displaying extracted physics values.
+#    * Bottom Pad (30 percent height): Displays the pull distribution across
+#      [minus 5, plus 5] sigma along with a dashed red reference line at zero.
+#
+# 7. Export Final Analysis Figure (SaveAs)
+#    Saves the complete dual pad visualization to outputs/z_boson_fit.png for
+#    scientific inspection and portfolio documentation.
+#
+# ==============================================================================
+# Summary Workflow:
+# Real Data + MC Background > Composite TF1 (Breit Wigner + Expo) > Minuit2 Fit
+# > Extract M_Z, Gamma_Z, Chi2/ndf > Compute Pulls > Dual Pad Plot > Export PNG
+# ==============================================================================

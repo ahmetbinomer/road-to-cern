@@ -1,0 +1,43 @@
+# ==============================================================================
+# mc_background.py Algorithm
+# ==============================================================================
+#
+# 1. Initialize Pseudo Random Number Generator (TRandom3)
+#    Creates an instance of the Mersenne Twister random number generator with
+#    a fixed seed value (seed = 42).
+#    Goal: Ensure scientific reproducibility so the simulation produces the
+#    exact same synthetic dataset every time the pipeline runs.
+#
+# 2. Allocate Synthetic Background Histogram (TH1D)
+#    Creates an empty 1D histogram with 100 bins covering the mass range from
+#    60.0 GeV to 120.0 GeV to match the exact binning of the real CMS dataset.
+#    Memory Safety: Calls SetDirectory(0) to keep the histogram independent
+#    from temporary ROOT memory management.
+#
+# 3. Generate Exponential Events via Inverse Transform Sampling
+#    Simulates 500,000 synthetic background events following a falling
+#    exponential distribution over [60.0, 120.0] GeV.
+#    Method: Converts uniform random numbers u in [0, 1) into truncated
+#    exponential mass values using the inverse cumulative distribution
+#    function. This guarantees 100 percent sampling efficiency inside the
+#    target mass window without wasting generated events outside the range.
+#
+# 4. Identify Signal Free Sideband Boundaries (FindBin)
+#    Locates the histogram bin indices corresponding to two pure background
+#    control regions outside the Z boson resonance peak:
+#    * Low Sideband Region: 60.0 GeV to 75.0 GeV
+#    * High Sideband Region: 105.0 GeV to 120.0 GeV
+#    Boundary Precision: Subtracts 1 from the upper boundary bin indices to
+#    prevent bin overlap and keep the integration limits exact.
+#
+# 5. Normalize Simulation to Real Data (Integral and Scale)
+#    Computes the total event yield inside both sideband regions for the real
+#    CMS data and the synthetic Monte Carlo histogram. Calculates the ratio
+#    (data yield divided by Monte Carlo yield) and scales the entire synthetic
+#    histogram by this factor to match the background level of the experiment.
+#
+# ==============================================================================
+# Summary Workflow:
+# Seed (42) > TRandom3 > Inverse CDF Sampling > 500k MC Events > TH1D
+# > Sideband Integration [60, 75] & [105, 120] GeV > Scale to Real Data
+# ==============================================================================
