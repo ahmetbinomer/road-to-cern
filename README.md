@@ -1,6 +1,6 @@
 # Road to CERN
 
-> 🏆 This project was featured on [CERN's official LinkedIn page](https://www.linkedin.com/feed/update/urn:li:activity:7531409790313521152/).
+>  This project was featured on [CERN's official LinkedIn page](https://www.linkedin.com/feed/update/urn:li:activity:7531409790313521152/).
 
 This repository is my personal learning path in experimental particle physics. It starts with the basics of the CERN ROOT framework and ends with a real physics analysis on public data from the CMS experiment at the Large Hadron Collider (LHC).
 
