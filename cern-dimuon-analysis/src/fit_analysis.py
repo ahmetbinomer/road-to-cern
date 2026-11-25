@@ -60,7 +60,7 @@ def run_z_boson_fit():
             h_pull.SetBinContent(i, pull)
             h_pull.SetBinError(i, 1.0)
 
-    # 4. Build Dual-Pad Canvas (Top: Spectrum + Fit, Bottom: Pull Residuals)
+    # 4. Creating Dual Pad Canvas (Top: Spectrum + Fit, Bottom: Pull Residuals)
     canvas = ROOT.TCanvas("c_z_fit", "CMS Z -> mu+ mu- Analysis", 950, 800)
 
     # Top pad (occupies upper 70% of the canvas)
@@ -78,12 +78,12 @@ def run_z_boson_fit():
     h_data.SetMarkerSize(0.75)
     h_data.Draw("E")
 
-    # Overlay sideband-normalized MC background
+    #N ormalized MC background
     h_mc_bkg.SetLineColor(ROOT.kAzure + 1)
     h_mc_bkg.SetFillColorAlpha(ROOT.kAzure + 1, 0.30)
     h_mc_bkg.Draw("HIST SAME")
 
-    # Overlay total Breit-Wigner + Exponential fit curve
+    # Total Breit Wigner + Exponential fit curve
     total_fit.SetLineColor(ROOT.kRed + 1)
     total_fit.SetLineWidth(2)
     total_fit.Draw("SAME")
