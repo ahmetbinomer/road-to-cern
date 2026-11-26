@@ -16,32 +16,33 @@ def run_z_boson_fit():
 
     total_fit = None
 
-    total_fit = ROOT.TF1("total_fit", "breitwigner(0) + expo(3)", 60.0, 120.0)
+    #Breit Wigner
+    #total_fit = ROOT.TF1("total_fit", "breitwigner(0) + expo(3)", 60.0, 120.0)
 
-    # Set physically motivated initial parameter guesses so Minuit2 converges cleanly
-    # [BW_Norm, Z_Mass (~91.2 GeV), Z_Width (~2.5-3.5 GeV), Bkg_Const, Bkg_Slope]
-    total_fit.SetParameters(1.5e6, 91.19, 3.5, 8.5, -0.02)
-    total_fit.SetParLimits(1, 88.0, 94.0)
-    total_fit.SetParLimits(2, 1.0, 10.0)
+    total_fit = ROOT.TF1("total_fit", "[0]*TMath::Voigt(x-[1],[2],[3]) + expo(4)", 60.0, 120.0)
+    total_fit.SetNpx(1000)
 
-    total_fit.SetParameters(1.5e6, 91.19, 3.5, 8.5, -0.02)
+    total_fit.SetParameters(2.6e6, 91.19, 1.5, 2.4952, 11.7, -0.06)
     total_fit.SetParLimits(1, 88.0, 94.0)
-    total_fit.SetParLimits(2, 1.0, 10.0)
+    total_fit.SetParLimits(2, 0.3, 5.0)
+
+    # Z width is fixed to the PDG value, the fit measures mass and detector resolution
+    total_fit.FixParameter(3, 2.4952)
 
     # Perform the fit over [60, 120] GeV ("R": use TF1 range, "S": return full fit result)
     fit_result = h_data.Fit(total_fit, "RS")
 
-    # Extract fitted physics parameters and goodness-of-fit metrics
+    # Extract fitted physics parameters and goodness of fit metrics
     z_mass = total_fit.GetParameter(1)
     z_mass_err = total_fit.GetParError(1)
-    z_width = total_fit.GetParameter(2)
-    z_width_err = total_fit.GetParError(2)
+    sigma = total_fit.GetParameter(2)
+    sigma_err = total_fit.GetParError(2)
     chi2 = total_fit.GetChisquare()
     ndf = total_fit.GetNDF()
 
     print("\n" + "=" * 50)
     print(f"Fitted Z Mass  : {z_mass:.4f} +/- {z_mass_err:.4f} GeV (PDG: 91.1876 GeV)")
-    print(f"Fitted Z Width : {z_width:.4f} +/- {z_width_err:.4f} GeV")
+    print(f"Resolution (σ) : {sigma:.4f} +/- {sigma_err:.4f} GeV")
     print(f"Chi2 / ndf     : {chi2:.2f} / {ndf} = {chi2 / ndf:.2f}")
     print("=" * 50 + "\n")
 
@@ -93,7 +94,8 @@ def run_z_boson_fit():
     legend.SetBorderSize(0)
     legend.SetFillStyle(0)
     legend.AddEntry(h_data, "CMS 2012 Data (4.64M events)", "lep")
-    legend.AddEntry(total_fit, "Breit-Wigner + Expo Fit", "l")
+    #legend.AddEntry(total_fit, "Breit-Wigner + Expo Fit", "l")
+    legend.AddEntry(total_fit, "Voignan + Expo Fit", "l")
     legend.AddEntry(h_mc_bkg, "MC Background (Sideband Norm.)", "f")
     legend.Draw()
 
@@ -103,7 +105,8 @@ def run_z_boson_fit():
     info_box.SetFillColor(ROOT.kWhite)
     info_box.SetTextAlign(12)
     info_box.AddText(f"M_{{Z}} = {z_mass:.3f} #pm {z_mass_err:.3f} GeV")
-    info_box.AddText(f"#Gamma_{{Z}} = {z_width:.3f} #pm {z_width_err:.3f} GeV")
+    info_box.AddText(f"#sigma_{{det}} = {sigma:.3f} #pm {sigma_err:.3f} GeV")
+    info_box.AddText("#Gamma_{Z} = 2.495 GeV (fixed)")
     info_box.AddText("PDG M_{Z} = 91.188 GeV")
     info_box.AddText(f"#chi^{{2}} / ndf = {chi2:.1f} / {ndf}")
     info_box.Draw()
